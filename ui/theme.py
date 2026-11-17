@@ -10,10 +10,28 @@
 from __future__ import annotations
 
 import base64
-from urllib.parse import quote
+from pathlib import Path
 
 IMG_W, IMG_H = 1920, 1490
-IMG_URL = "/app/static/school_of_athens.jpg"
+_IMG_PATH = Path(__file__).resolve().parent.parent / "static" / "school_of_athens.jpg"
+
+
+def _image_url() -> str:
+    """원작 이미지를 CSS 에 직접 내장한다.
+
+    정적 파일 서빙(/app/static/…)은 배포 환경(Streamlit Community Cloud 등)이 앱을 하위 경로 아래에서
+    서빙하면 절대 경로가 404 가 된다. 내장하면 경로·서버 설정에 의존하지 않는다. 파일을 읽지 못하면
+    접두사 문제를 피하려고 슬래시 없는 상대 경로로 폴백한다. 큰 메시지는 Streamlit 이 클라이언트에 캐시하므로
+    매 실행마다 다시 전송되지는 않는다.
+    """
+    try:
+        data = _IMG_PATH.read_bytes()
+    except OSError:
+        return "app/static/school_of_athens.jpg"
+    return "data:image/jpeg;base64," + base64.b64encode(data).decode("ascii")
+
+
+IMG_URL = _image_url()  # 모듈 로드 시 한 번만 계산
 
 # 계층 구분용 '옷 색' — 흰 글자와 대비 4.5:1 이상
 ROBES = ["#A8475E", "#2F5DA8", "#8A5D0C", "#4F7355", "#7A5A8C", "#2F6F77"]
@@ -74,7 +92,7 @@ def _bg(x: float, y: float, w: float, h: float) -> str:
 
 
 def _crop_css() -> str:
-    rules = [f".crop{{background-image:url('{IMG_URL}');background-repeat:no-repeat;background-color:#CDBF9B;}}"]
+    rules = [f".crop{{background-image:var(--fresco);background-repeat:no-repeat;background-color:#CDBF9B;}}"]
     for key, (cx, cy, cw) in FIGURES.items():
         rules.append(f".crop-{key}{{aspect-ratio:1/1;{_bg(cx - cw / 2, cy - cw / 2, cw, cw)}}}")
     for key, (x, y, w, h) in BANNERS.items():
@@ -109,6 +127,9 @@ def _meander_uri(color: str, bg: str | None = None) -> str:
 
 CSS = (
     FONT_IMPORT
+    + ":root{--fresco:url('"
+    + IMG_URL
+    + "');}"  # 원작 이미지는 여기에 한 번만 담고 .crop / .stApp 이 var(--fresco)로 참조한다
     + """
 :root{
   --parch:#EDE6D3; --parch-hi:#FBF7EA; --stone:#DDD2B4; --stone-dk:#B09A62;
@@ -121,9 +142,7 @@ CSS = (
     + """
 .stApp{
   background-color:var(--parch);
-  background-image:linear-gradient(rgba(237,230,211,.935),rgba(237,230,211,.935)),url('"""
-    + IMG_URL
-    + """');
+  background-image:linear-gradient(rgba(237,230,211,.935),rgba(237,230,211,.935)),var(--fresco);
   background-size:cover; background-position:center top; background-attachment:fixed;
 }
 .stApp, .stMarkdown, .stMarkdown p, .stMarkdown li, label, [data-testid="stWidgetLabel"] p,
