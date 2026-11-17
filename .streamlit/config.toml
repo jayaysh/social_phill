@@ -1,0 +1,22 @@
+[theme]
+base = "light"
+primaryColor = "#23407A"
+backgroundColor = "#EDE6D3"
+secondaryBackgroundColor = "#E2D8BD"
+textColor = "#241F17"
+font = "serif"
+
+[theme.sidebar]
+backgroundColor = "#14264B"
+secondaryBackgroundColor = "#23407A"
+textColor = "#F4EBCF"
+primaryColor = "#E2BC5A"
+borderColor = "#B38A2E"
+
+[server]
+headless = true
+# 원작 이미지(static/school_of_athens.jpg)를 /app/static/ 으로 서빙한다
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
