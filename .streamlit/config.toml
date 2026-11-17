@@ -15,7 +15,8 @@ borderColor = "#B38A2E"
 
 [server]
 headless = true
-# 원작 이미지(static/school_of_athens.jpg)를 /app/static/ 으로 서빙한다
+# 원작 이미지는 코드가 static/school_of_athens.jpg 를 읽어 CSS 에 직접 내장한다(ui/theme.py).
+# 이 설정은 파일을 읽지 못할 때의 폴백(/app/static/)용이라 꺼져 있어도 그림은 나온다.
 enableStaticServing = true
 
 [browser]
